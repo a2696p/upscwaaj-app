@@ -106,8 +106,13 @@ jobs:
           }
           EOF
 
-          # Explicitly download and configure the exact compatible wrapper version
-          gradle wrapper --gradle-version 8.4 --distribution-type bin
+          # Manually download and set up a compatible Gradle 8.2 version
+          wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
+          unzip -q gradle-8.2-bin.zip
+          export PATH=$PWD/gradle-8.2/bin:$PATH
+
+          gradle -v
+          gradle wrapper --gradle-version 8.2
           ./gradlew assembleDebug
 
       - name: Upload Finished APK
