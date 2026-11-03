@@ -19,6 +19,8 @@ jobs:
         run: |
           mkdir -p app/src/main/java/com/upscwaaj/app
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/layout
 
           cat << 'EOF' > settings.gradle
           rootProject.name = "UPSCwaaj"
@@ -51,16 +53,22 @@ jobs:
                   }
               }
           }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+              implementation 'androidx.core:core-splashscreen:1.0.1'
+          }
           EOF
 
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
               <application
                   android:label="UPSCwaaj"
                   android:usesCleartextTraffic="true"
-                  android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+                  android:theme="@style/Theme.App.Starting">
                   <activity android:name=".MainActivity" android:exported="true"
                       android:configChanges="orientation|screenSize|keyboardHidden">
                       <intent-filter>
@@ -72,47 +80,113 @@ jobs:
           </manifest>
           EOF
 
+          cat << 'EOF' > app/src/main/res/values/styles.xml
+          <resources>
+              <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+                  <!-- Exact color matched to UPSCwaaj dark header background -->
+                  <item name="windowSplashScreenBackground">#0c1424</item>
+                  <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+                  <item name="windowSplashScreenAnimationDuration">1000</item>
+                  <item name="postSplashScreenTheme">@style/AppTheme</item>
+              </style>
+              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+                  <item name="android:statusBarColor">#0c1424</item>
+              </style>
+          </resources>
+          EOF
+
+          # Sleek vector badge icon matching your theme colors
+          cat << 'EOF' > app/src/main/res/drawable/splash_icon.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+            <path
+                android:fillColor="#f59e0b"
+                android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z"/>
+            <path
+                android:fillColor="#ffffff"
+                android:pathData="M12,6l-6,6h4v6h4v-6h4z"/>
+          </vector>
+          EOF
+
           cat << 'EOF' > app/src/main/java/com/upscwaaj/app/MainActivity.java
           package com.upscwaaj.app;
-          import android.app.Activity;
+          import android.Manifest;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
           import android.os.Bundle;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
-          import android.graphics.Color;
-          import android.view.Window;
+          import androidx.activity.result.ActivityResultLauncher;
+          import androidx.activity.result.contract.ActivityResultContracts;
+          import androidx.appcompat.app.AppCompatActivity;
+          import androidx.core.content.ContextCompat;
+          import androidx.core.splashscreen.SplashScreen;
+          import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-          public class MainActivity extends Activity {
+          public class MainActivity extends AppCompatActivity {
               private WebView webView;
+              private SwipeRefreshLayout swipeRefreshLayout;
+
+              private final ActivityResultLauncher<String> requestPermissionLauncher =
+                  registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {});
+
               @Override
               protected void onCreate(Bundle savedInstanceState) {
+                  SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
                   super.onCreate(savedInstanceState);
-                  Window window = getWindow();
-                  window.setStatusBarColor(Color.parseColor("#0f172a"));
+
+                  swipeRefreshLayout = new SwipeRefreshLayout(this);
                   webView = new WebView(this);
-                  setContentView(webView);
+                  swipeRefreshLayout.addView(webView);
+                  setContentView(swipeRefreshLayout);
+
                   WebSettings settings = webView.getSettings();
                   settings.setJavaScriptEnabled(true);
                   settings.setDomStorageEnabled(true);
-                  webView.setWebViewClient(new WebViewClient());
+                  settings.setLoadWithOverviewMode(true);
+                  settings.setUseWideViewPort(true);
+                  settings.setDatabaseEnabled(true);
+
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+                          swipeRefreshLayout.setRefreshing(false);
+                      }
+                  });
+
+                  swipeRefreshLayout.setOnRefreshListener(() -> webView.reload());
+
                   webView.loadUrl("https://www.upscwaaj.com");
+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                              PackageManager.PERMISSION_GRANTED) {
+                          requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                      }
+                  }
               }
+
               @Override
               public void onBackPressed() {
-                  if (webView.canGoBack()) { webView.goBack(); }
-                  else { super.onBackPressed(); }
+                  if (webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
               }
           }
           EOF
 
-          # Download Gradle 8.2 explicitly
           wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
           unzip -q gradle-8.2-bin.zip
           export PATH=$PWD/gradle-8.2/bin:$PATH
 
           gradle wrapper --gradle-version 8.2
-
-          # Build BOTH the Play Store Bundle (AAB) and the Local Test APK
           ./gradlew bundleRelease assembleDebug --no-daemon
 
       - name: Upload Play Store AAB
