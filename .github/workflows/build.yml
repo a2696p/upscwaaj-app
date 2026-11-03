@@ -15,8 +15,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Setup Android SDK Environment
+        run: |
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          mkdir -p $HOME/android-sdk
+          # Accept licenses automatically to prevent sdkmanager prompts
+          yes | sdkmanager --licenses || true
 
       - name: Generate Android Project & Build APK
         run: |
@@ -103,7 +107,6 @@ jobs:
           }
           EOF
 
-          # Generate Gradle Wrapper so we can execute standard builds reliably
           gradle wrapper --gradle-version 8.2
           ./gradlew assembleDebug
 
