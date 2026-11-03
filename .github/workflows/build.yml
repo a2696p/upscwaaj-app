@@ -92,7 +92,7 @@ jobs:
           </resources>
           EOF
 
-          # Clean Native Splash Layout with UPSCWAAJ Text and Yellow Background (#f59e0b)
+          # Scaled up, bold, premium proportions matching your website header branding
           cat << 'EOF' > app/src/main/res/layout/activity_splash.xml
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -100,6 +100,7 @@ jobs:
               android:layout_height="match_parent"
               android:background="#f59e0b"
               android:gravity="center"
+              android:padding="24dp"
               android:orientation="vertical">
 
               <TextView
@@ -107,9 +108,10 @@ jobs:
                   android:layout_height="wrap_content"
                   android:text="UPSCWAAJ"
                   android:textColor="#0c1424"
-                  android:textSize="36sp"
+                  android:textSize="48sp"
                   android:textStyle="bold"
-                  android:letterSpacing="0.05"
+                  android:letterSpacing="0.08"
+                  android:gravity="center"
                   android:fontFamily="sans-serif-black" />
 
           </LinearLayout>
@@ -143,10 +145,8 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  // Show our native text splash layout first
                   setContentView(R.layout.activity_splash);
 
-                  // Transition to the WebView website after 2.5 seconds
                   new Handler(Looper.getMainLooper()).postDelayed(() -> {
                       initMainApp();
                   }, 2500);
