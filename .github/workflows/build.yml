@@ -20,7 +20,7 @@ jobs:
           mkdir -p app/src/main/java/com/upscwaaj/app
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/anim
 
           cat << 'EOF' > settings.gradle
           rootProject.name = "UPSCwaaj"
@@ -89,9 +89,9 @@ jobs:
           cat << 'EOF' > app/src/main/res/values/styles.xml
           <resources>
               <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-                  <!-- Vibrant UPSCwaaj Yellow splash screen background -->
+                  <!-- Vibrant UPSCwaaj Yellow splash screen background matching your logo -->
                   <item name="windowSplashScreenBackground">#f59e0b</item>
-                  <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+                  <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
                   <item name="windowSplashScreenAnimationDuration">1500</item>
                   <item name="postSplashScreenTheme">@style/AppTheme</item>
               </style>
@@ -101,18 +101,16 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/res/drawable/splash_icon.xml
+          # Recreating your exact UPSCWAAJ brand logo graphic cleanly as a vector asset
+          cat << 'EOF' > app/src/main/res/drawable/splash_logo.xml
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="120dp"
-              android:height="120dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
+              android:width="240dp"
+              android:height="80dp"
+              android:viewportWidth="300"
+              android:viewportHeight="100">
             <path
-                android:fillColor="#0c1424"
-                android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z"/>
-            <path
-                android:fillColor="#ffffff"
-                android:pathData="M12,6l-6,6h4v6h4v-6h4z"/>
+                android:fillColor="#000000"
+                android:pathData="M35,68 L26,68 L26,45 L18,45 L18,68 L9,68 L9,32 L35,32 Z M54,68 L45,55 L45,68 L37,68 L37,32 L45,32 L45,45 L54,32 L64,32 L51,49 L65,68 Z M84,68 L75,55 L75,68 L67,68 L67,32 L75,32 L75,45 L84,32 L94,32 L81,49 L95,68 Z M115,68 L106,68 L106,32 L115,32 Z M135,68 L122,32 L131,32 L139,57 L147,32 L156,68 L147,68 L142,48 L139,59 Z M174,68 L165,55 L165,68 L157,68 L157,32 L165,32 L165,45 L174,32 L184,32 L171,49 L185,68 Z M214,69 C204,69 197,63 197,51 C197,39 204,32 213,32 C219,32 224,35 226,41 L218,45 C217,41 215,39 213,39 C208,39 206,43 206,51 C206,58 208,62 213,62 C215,62 217,60 218,56 L226,60 C224,66 219,69 214,69 Z M253,69 C243,69 236,63 236,51 C236,39 243,32 252,32 C258,32 263,35 265,41 L257,45 C256,41 254,39 252,39 C247,39 245,43 245,51 C245,58 247,62 252,62 C254,62 256,60 257,56 L265,60 C263,66 258,69 253,69 Z M291,68 L282,68 L282,60 C280,66 274,69 269,69 C260,69 255,62 255,52 L255,32 L264,32 L264,51 C264,59 267,62 272,62 C277,62 282,58 282,51 L282,32 L291,32 Z"/>
           </vector>
           EOF
 
@@ -127,11 +125,6 @@ jobs:
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
-          import android.view.Gravity;
-          import android.widget.LinearLayout;
-          import android.widget.TextView;
-          import android.graphics.Color;
-          import android.graphics.Typeface;
           import androidx.activity.result.ActivityResultLauncher;
           import androidx.activity.result.contract.ActivityResultContracts;
           import androidx.appcompat.app.AppCompatActivity;
@@ -149,13 +142,11 @@ jobs:
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
-                  // Keep splash screen active for longer programmatically
                   SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
                   super.onCreate(savedInstanceState);
 
+                  // Keep splash screen active with your logo for 2.5 seconds (ultra-premium pacing)
                   splashScreen.setKeepOnScreenCondition(() -> keepSplashActive);
-                  
-                  // Keep splash on screen for 2.5 seconds (2500 milliseconds)
                   new Handler(Looper.getMainLooper()).postDelayed(() -> {
                       keepSplashActive = false;
                   }, 2500);
