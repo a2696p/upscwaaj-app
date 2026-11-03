@@ -92,29 +92,27 @@ jobs:
           </resources>
           EOF
 
-          # Scaled up, bold, premium proportions matching your website header branding
+          # Expanded layout with 72sp text size for powerful screen filling proportions
           cat << 'EOF' > app/src/main/res/layout/activity_splash.xml
           <?xml version="1.0" encoding="utf-8"?>
-          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#f59e0b"
-              android:gravity="center"
-              android:padding="24dp"
-              android:orientation="vertical">
+              android:background="#f59e0b">
 
               <TextView
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
+                  android:layout_centerInParent="true"
                   android:text="UPSCWAAJ"
                   android:textColor="#0c1424"
-                  android:textSize="48sp"
+                  android:textSize="72sp"
                   android:textStyle="bold"
-                  android:letterSpacing="0.08"
+                  android:letterSpacing="0.06"
                   android:gravity="center"
                   android:fontFamily="sans-serif-black" />
 
-          </LinearLayout>
+          </RelativeLayout>
           EOF
 
           cat << 'EOF' > app/src/main/java/com/upscwaaj/app/MainActivity.java
