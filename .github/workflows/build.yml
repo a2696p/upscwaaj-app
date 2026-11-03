@@ -20,11 +20,17 @@ jobs:
           mkdir -p app/src/main/java/com/upscwaaj/app
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/res/layout
 
           cat << 'EOF' > settings.gradle
           rootProject.name = "UPSCwaaj"
           include ':app'
+          EOF
+
+          # Enable AndroidX and suppress compileSdk 34 warning
+          cat << 'EOF' > gradle.properties
+          android.useAndroidX=true
+          android.enableJetifier=true
+          android.suppressUnsupportedCompileSdk=34
           EOF
 
           cat << 'EOF' > build.gradle
@@ -95,7 +101,6 @@ jobs:
           </resources>
           EOF
 
-          # Splash icon styled with deep dark contrast elements to look striking on yellow
           cat << 'EOF' > app/src/main/res/drawable/splash_icon.xml
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
