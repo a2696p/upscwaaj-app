@@ -1,4 +1,4 @@
-name: Build UPSCwaaj AAB for Play Store
+name: Build UPSCwaaj AAB and APK
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Generate Android Project & Build AAB
+      - name: Generate Android Project & Build Artifacts
         run: |
           mkdir -p app/src/main/java/com/upscwaaj/app
           mkdir -p app/src/main/res/values
@@ -112,11 +112,17 @@ jobs:
 
           gradle wrapper --gradle-version 8.2
 
-          # Build the AAB file
-          ./gradlew bundleRelease --no-daemon
+          # Build BOTH the Play Store Bundle (AAB) and the Local Test APK
+          ./gradlew bundleRelease assembleDebug --no-daemon
 
-      - name: Upload Finished AAB Artifact
+      - name: Upload Play Store AAB
         uses: actions/upload-artifact@v4
         with:
           name: UPSCwaaj-PlayStore-AAB
           path: app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: UPSCwaaj-Test-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
