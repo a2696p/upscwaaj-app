@@ -32,7 +32,7 @@ jobs:
           fi
 
           cat << 'EOF' > settings.gradle
-          rootProject.name = "UPSCWAAJ"
+          rootProject.name = "UPSCwaaj"
           include ':app'
           EOF
 
@@ -118,7 +118,7 @@ jobs:
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
               <application
-                  android:label="UPSCWAAJ"
+                  android:label="UPSCwaaj"
                   android:icon="@mipmap/ic_launcher"
                   android:roundIcon="@mipmap/ic_launcher_round"
                   android:usesCleartextTraffic="true"
@@ -218,7 +218,7 @@ jobs:
                       <TextView
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
-                          android:text="UPSCWAAJ"
+                          android:text="UPSCwaaj"
                           android:textColor="#eab308"
                           android:textSize="44sp"
                           android:textStyle="bold"
