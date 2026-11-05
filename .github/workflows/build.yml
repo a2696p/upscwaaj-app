@@ -205,7 +205,7 @@ jobs:
                       <TextView
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
-                          android:text="UPSCwaaj"
+                          android:text="UPSCWAAJ"
                           android:textColor="#eab308"
                           android:textSize="44sp"
                           android:textStyle="bold"
