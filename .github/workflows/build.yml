@@ -26,32 +26,38 @@ jobs:
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
           # --- BULLETPROOF ICON COMPILER ---
-          # Generate a fallback invisible icon so the build NEVER fails due to missing files
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > app/src/main/res/mipmap-xxxhdpi/fallback_icon.png
-
-          # 1. Safely rename and copy all PNGs (replaces forbidden dashes with underscores)
+          # 1. First, rename any files with dashes in the root folder to underscores
           for img in *.png; do
             if [ -f "$img" ]; then
               safe_name=$(echo "$img" | tr '-' '_')
-              cp "$img" "app/src/main/res/mipmap-xxxhdpi/$safe_name"
+              if [ "$img" != "$safe_name" ]; then
+                mv "$img" "$safe_name"
+              fi
+            fi
+          done
+
+          # 2. Copy all safe PNGs into the Android mipmap folder
+          for img in *.png; do
+            if [ -f "$img" ]; then
+              cp "$img" "app/src/main/res/mipmap-xxxhdpi/$img"
             fi
           done
           
-          # 2. Assign the App Icons and Push Notification Icons
+          # 3. Assign the App Icons and Push Notification Icons safely
           cd app/src/main/res/mipmap-xxxhdpi
           
-          # Added '|| true' to prevent Linux 'ls' from crashing the workflow if a name isn't found
           MAIN_ICON=$(ls playstore_icon.png ic_launcher_web.png apple_touch_icon.png 2>/dev/null | head -n 1 || true)
-          [ -z "$MAIN_ICON" ] && MAIN_ICON=$(ls *.png 2>/dev/null | grep -v fallback_icon.png | head -n 1 || true)
-          [ -z "$MAIN_ICON" ] && MAIN_ICON="fallback_icon.png"
+          [ -z "$MAIN_ICON" ] && MAIN_ICON=$(ls *.png 2>/dev/null | head -n 1 || true)
           
-          cp "$MAIN_ICON" ic_launcher.png
-          cp "$MAIN_ICON" ic_launcher_round.png
+          if [ -n "$MAIN_ICON" ]; then
+            cp "$MAIN_ICON" ic_launcher.png
+            cp "$MAIN_ICON" ic_launcher_round.png
+          fi
           
           NOTIFY_ICON=$(ls *notification*.png *transparent*.png 2>/dev/null | head -n 1 || true)
           if [ -n "$NOTIFY_ICON" ]; then
             cp "$NOTIFY_ICON" ic_notification_final.png
-          else
+          elif [ -n "$MAIN_ICON" ]; then
             cp "$MAIN_ICON" ic_notification_final.png
           fi
           
@@ -96,8 +102,8 @@ jobs:
                   applicationId "com.upscwaaj.app"
                   minSdk 24
                   targetSdk 34
-                  versionCode 4
-                  versionName "1.3"
+                  versionCode 5
+                  versionName "1.4"
               }
               buildTypes {
                   release { minifyEnabled false }
@@ -178,7 +184,6 @@ jobs:
                       </intent-filter>
                   </service>
                   
-                  <!-- Fixes the White Square Icon in Push Notifications -->
                   <meta-data
                       android:name="com.google.firebase.messaging.default_notification_icon"
                       android:resource="@mipmap/ic_notification_final" />
@@ -294,7 +299,7 @@ jobs:
           }
           EOF
 
-          cat << 'EOF' > app/src/main/java/com/upscwaaj/app/MainActivity.java
+          cat << 'EOF' > app/src/main/java/com/upscwaaj.app/MainActivity.java
           package com.upscwaaj.app;
           import android.Manifest;
           import android.content.Context;
