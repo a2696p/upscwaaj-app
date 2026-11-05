@@ -1,4 +1,4 @@
-name: Build Premium UPSCwaaj App
+name: Build Premium UPSCwaaj App (Firebase)
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
           mkdir -p app/src/main/res/layout
 
           cat << 'EOF' > settings.gradle
-          rootProject.name = "UPSCWAAJ"
+          rootProject.name = "UPSCwaaj"
           include ':app'
           EOF
 
@@ -36,7 +36,8 @@ jobs:
           buildscript {
               repositories { google(); mavenCentral(); gradlePluginPortal() }
               dependencies { 
-                  classpath 'com.android.tools.build:gradle:8.1.0' 
+                  classpath 'com.android.tools.build:gradle:8.1.0'
+                  classpath 'com.google.gms:google-services:4.4.0'
               }
           }
           allprojects { repositories { google(); mavenCentral() } }
@@ -44,6 +45,7 @@ jobs:
 
           cat << 'EOF' > app/build.gradle
           apply plugin: 'com.android.application'
+          apply plugin: 'com.google.gms.google-services'
           android {
               namespace 'com.upscwaaj.app'
               compileSdk 34
@@ -61,8 +63,40 @@ jobs:
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
               implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-              // OneSignal Push Notifications SDK
-              implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
+              implementation platform('com.google.firebase:firebase-bom:32.7.0')
+              implementation 'com.google.firebase:firebase-messaging'
+          }
+          EOF
+          
+          cat << 'EOF' > app/google-services.json
+          {
+            "project_info": {
+              "project_number": "568036902049",
+              "project_id": "upscwaaj-7972c",
+              "storage_bucket": "upscwaaj-7972c.firebasestorage.app"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:568036902049:android:0b33bf252399bbbbfc9ce0",
+                  "android_client_info": {
+                    "package_name": "com.upscwaaj.app"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyDKBrTGygiaXEPoX0XW23fhg8VZDs3Y81M"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
           }
           EOF
 
@@ -73,7 +107,7 @@ jobs:
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
               <application
-                  android:label="UPSCWAAJ"
+                  android:label="UPSCwaaj"
                   android:usesCleartextTraffic="true"
                   android:theme="@style/AppTheme">
                   <activity android:name=".MainActivity" android:exported="true"
@@ -82,7 +116,6 @@ jobs:
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
                       </intent-filter>
-                      <!-- Deep Linking: Open upscwaaj.com links directly in the app -->
                       <intent-filter android:autoVerify="true">
                           <action android:name="android.intent.action.VIEW" />
                           <category android:name="android.intent.category.DEFAULT" />
@@ -91,6 +124,13 @@ jobs:
                           <data android:scheme="https" android:host="upscwaaj.com" />
                       </intent-filter>
                   </activity>
+                  <service
+                      android:name=".MyFirebaseMessagingService"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                      </intent-filter>
+                  </service>
               </application>
           </manifest>
           EOF
@@ -110,8 +150,6 @@ jobs:
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="#0f172a">
-              
-              <!-- Main Content (Website) -->
               <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                   android:id="@+id/swipe_refresh"
                   android:layout_width="match_parent"
@@ -121,8 +159,6 @@ jobs:
                       android:layout_width="match_parent"
                       android:layout_height="match_parent" />
               </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-              <!-- Custom Offline Screen -->
               <LinearLayout
                   android:id="@+id/offline_layout"
                   android:layout_width="match_parent"
@@ -154,8 +190,6 @@ jobs:
                       android:backgroundTint="#eab308"
                       android:textColor="#0f172a" />
               </LinearLayout>
-              
-              <!-- Premium Splash Screen Overlay -->
               <RelativeLayout
                   android:id="@+id/splash_screen"
                   android:layout_width="match_parent"
@@ -171,7 +205,7 @@ jobs:
                       <TextView
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
-                          android:text="UPSCWAAJ"
+                          android:text="UPSCwaaj"
                           android:textColor="#eab308"
                           android:textSize="44sp"
                           android:textStyle="bold"
@@ -187,6 +221,23 @@ jobs:
                   </LinearLayout>
               </RelativeLayout>
           </RelativeLayout>
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/upscwaaj/app/MyFirebaseMessagingService.java
+          package com.upscwaaj.app;
+          import com.google.firebase.messaging.FirebaseMessagingService;
+          import com.google.firebase.messaging.RemoteMessage;
+
+          public class MyFirebaseMessagingService extends FirebaseMessagingService {
+              @Override
+              public void onMessageReceived(RemoteMessage remoteMessage) {
+                  super.onMessageReceived(remoteMessage);
+              }
+              @Override
+              public void onNewToken(String token) {
+                  super.onNewToken(token);
+              }
+          }
           EOF
 
           cat << 'EOF' > app/src/main/java/com/upscwaaj/app/MainActivity.java
@@ -213,7 +264,6 @@ jobs:
           import androidx.appcompat.app.AppCompatActivity;
           import androidx.core.content.ContextCompat;
           import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-          import com.onesignal.OneSignal;
 
           public class MainActivity extends AppCompatActivity {
               private WebView webView;
@@ -223,19 +273,12 @@ jobs:
               private Button btnRetry;
               private boolean isSplashGone = false;
 
-              // TODO: Replace with your actual OneSignal App ID when ready
-              private static final String ONESIGNAL_APP_ID = "YOUR_ONESIGNAL_APP_ID_HERE";
-
               private final ActivityResultLauncher<String> requestPermissionLauncher =
                   registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {});
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  
-                  // Initialize OneSignal
-                  OneSignal.initWithContext(this, ONESIGNAL_APP_ID);
-
                   setContentView(R.layout.activity_main);
 
                   webView = findViewById(R.id.webview);
@@ -254,7 +297,6 @@ jobs:
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                           String url = request.getUrl().toString();
-                          // Intercept share buttons and open native Android apps
                           if (url.contains("api.whatsapp.com") || url.contains("t.me") || url.contains("twitter.com") || url.contains("facebook.com/sharer")) {
                               try {
                                   Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
