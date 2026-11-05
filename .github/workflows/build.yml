@@ -25,10 +25,11 @@ jobs:
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
-          # Automatically set your uploaded image as the app icon
-          if [ -f "ic_launcher-web.png" ]; then
-            cp ic_launcher-web.png app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-            cp ic_launcher-web.png app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          # Smart Icon Grabber: Automatically finds any PNG you uploaded and sets it as the app icon
+          ICON_FILE=$(ls *.png 2>/dev/null | head -n 1)
+          if [ -n "$ICON_FILE" ]; then
+            cp "$ICON_FILE" app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+            cp "$ICON_FILE" app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
           fi
 
           cat << 'EOF' > settings.gradle
