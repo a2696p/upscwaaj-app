@@ -22,7 +22,7 @@ jobs:
           mkdir -p app/src/main/res/layout
 
           cat << 'EOF' > settings.gradle
-          rootProject.name = "UPSCwaaj"
+          rootProject.name = "UPSCWAAJ"
           include ':app'
           EOF
 
@@ -73,7 +73,7 @@ jobs:
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
               <application
-                  android:label="UPSCwaaj"
+                  android:label="UPSCWAAJ"
                   android:usesCleartextTraffic="true"
                   android:theme="@style/AppTheme">
                   <activity android:name=".MainActivity" android:exported="true"
@@ -171,7 +171,7 @@ jobs:
                       <TextView
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
-                          android:text="UPSCwaaj"
+                          android:text="UPSCWAAJ"
                           android:textColor="#eab308"
                           android:textSize="44sp"
                           android:textStyle="bold"
