@@ -26,7 +26,6 @@ jobs:
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
           # --- BULLETPROOF ICON COMPILER ---
-          # 1. First, rename any files with dashes in the root folder to underscores
           for img in *.png; do
             if [ -f "$img" ]; then
               safe_name=$(echo "$img" | tr '-' '_')
@@ -36,28 +35,22 @@ jobs:
             fi
           done
 
-          # 2. Copy all safe PNGs into the Android mipmap folder
-          for img in *.png; do
-            if [ -f "$img" ]; then
-              cp "$img" "app/src/main/res/mipmap-xxxhdpi/$img"
-            fi
-          done
-          
-          # 3. Assign the App Icons and Push Notification Icons safely
           cd app/src/main/res/mipmap-xxxhdpi
           
           MAIN_ICON=$(ls playstore_icon.png ic_launcher_web.png apple_touch_icon.png 2>/dev/null | head -n 1 || true)
           [ -z "$MAIN_ICON" ] && MAIN_ICON=$(ls *.png 2>/dev/null | head -n 1 || true)
           
-          if [ -n "$MAIN_ICON" ]; then
+          if [ -n "$MAIN_ICON" ] && [ "$MAIN_ICON" != "ic_launcher.png" ]; then
             cp "$MAIN_ICON" ic_launcher.png
+          fi
+          if [ -n "$MAIN_ICON" ] && [ "$MAIN_ICON" != "ic_launcher_round.png" ]; then
             cp "$MAIN_ICON" ic_launcher_round.png
           fi
           
           NOTIFY_ICON=$(ls *notification*.png *transparent*.png 2>/dev/null | head -n 1 || true)
-          if [ -n "$NOTIFY_ICON" ]; then
+          if [ -n "$NOTIFY_ICON" ] && [ "$NOTIFY_ICON" != "ic_notification_final.png" ]; then
             cp "$NOTIFY_ICON" ic_notification_final.png
-          elif [ -n "$MAIN_ICON" ]; then
+          elif [ -n "$MAIN_ICON" ] && [ "$MAIN_ICON" != "ic_notification_final.png" ]; then
             cp "$MAIN_ICON" ic_notification_final.png
           fi
           
@@ -102,8 +95,8 @@ jobs:
                   applicationId "com.upscwaaj.app"
                   minSdk 24
                   targetSdk 34
-                  versionCode 5
-                  versionName "1.4"
+                  versionCode 6
+                  versionName "1.5"
               }
               buildTypes {
                   release { minifyEnabled false }
@@ -117,7 +110,6 @@ jobs:
           }
           EOF
           
-          # Your Official Firebase Connection File
           cat << 'EOF' > app/google-services.json
           {
             "project_info": {
@@ -299,7 +291,7 @@ jobs:
           }
           EOF
 
-          cat << 'EOF' > app/src/main/java/com/upscwaaj.app/MainActivity.java
+          cat << 'EOF' > app/src/main/java/com/upscwaaj/app/MainActivity.java
           package com.upscwaaj.app;
           import android.Manifest;
           import android.content.Context;
