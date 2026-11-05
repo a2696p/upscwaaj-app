@@ -110,8 +110,8 @@ jobs:
                   applicationId "com.upscwaaj.app"
                   minSdk 24
                   targetSdk 34
-                  versionCode 11
-                  versionName "1.10"
+                  versionCode 12
+                  versionName "1.11"
               }
               buildTypes {
                   release { minifyEnabled false }
@@ -204,7 +204,7 @@ jobs:
           cat << 'EOF' > app/src/main/res/values/styles.xml
           <resources>
               <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="android:statusBarColor">#0f172a</item>
+                  <item name="android:statusBarColor">#eab308</item>
                   <item name="android:windowBackground">#0f172a</item>
               </style>
           </resources>
@@ -252,7 +252,7 @@ jobs:
                       android:id="@+id/btn_retry"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      text="Retry"
+                      android:text="Retry"
                       android:backgroundTint="#eab308"
                       android:textColor="#0f172a" />
               </LinearLayout>
@@ -260,7 +260,7 @@ jobs:
                   android:id="@+id/splash_screen"
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
-                  android:background="#0f172a"
+                  android:background="#eab308"
                   android:elevation="10dp">
                   <LinearLayout
                       android:layout_width="wrap_content"
@@ -272,7 +272,7 @@ jobs:
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
                           android:text="UPSCWAAJ"
-                          android:textColor="#eab308"
+                          android:textColor="#0f172a"
                           android:textSize="44sp"
                           android:textStyle="bold"
                           android:fontFamily="sans-serif-black" />
@@ -280,7 +280,7 @@ jobs:
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
                           android:text="WORLD AFFAIRS"
-                          android:textColor="#94a3b8"
+                          android:textColor="#0f172a"
                           android:textSize="13sp"
                           android:textStyle="bold"
                           android:layout_marginTop="6dp" />
