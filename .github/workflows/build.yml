@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Repository (To get your logo)
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -25,15 +25,38 @@ jobs:
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
-          # Smart Icon Grabber: Automatically finds any PNG you uploaded and sets it as the app icon
-          ICON_FILE=$(ls *.png 2>/dev/null | head -n 1)
-          if [ -n "$ICON_FILE" ]; then
-            cp "$ICON_FILE" app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-            cp "$ICON_FILE" app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          # --- SMART ICON COMPILER FOR 3+ IMAGES ---
+          # 1. Copy all uploaded PNGs into the app's resource folder
+          find . -maxdepth 1 -name "*.png" -exec cp {} app/src/main/res/mipmap-xxxhdpi/ \;
+
+          # 2. Set the Main App Icon
+          MAIN_ICON=$(find . -maxdepth 1 -name "playstore-icon.png" -o -name "ic_launcher-web.png" | head -n 1)
+          if [ -z "$MAIN_ICON" ]; then
+            MAIN_ICON=$(find . -maxdepth 1 -name "*.png" | head -n 1)
+          fi
+          
+          if [ -n "$MAIN_ICON" ]; then
+            cp "$MAIN_ICON" app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+            cp "$MAIN_ICON" app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
           fi
 
+          # 3. Set the Push Notification Icon
+          NOTIFY_ICON=$(find . -maxdepth 1 -name "*notification*.png" -o -name "*transparent*.png" | head -n 1)
+          if [ -n "$NOTIFY_ICON" ]; then
+            cp "$NOTIFY_ICON" app/src/main/res/mipmap-xxxhdpi/ic_notification_final.png
+          elif [ -n "$MAIN_ICON" ]; then
+            cp "$MAIN_ICON" app/src/main/res/mipmap-xxxhdpi/ic_notification_final.png
+          fi
+
+          cat << 'EOF' > app/src/main/res/values/colors.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="accentColor">#eab308</color>
+          </resources>
+          EOF
+
           cat << 'EOF' > settings.gradle
-          rootProject.name = "UPSCWAAJ"
+          rootProject.name = "UPSCwaaj"
           include ':app'
           EOF
 
@@ -64,8 +87,8 @@ jobs:
                   applicationId "com.upscwaaj.app"
                   minSdk 24
                   targetSdk 34
-                  versionCode 3
-                  versionName "1.2"
+                  versionCode 4
+                  versionName "1.3"
               }
               buildTypes {
                   release { minifyEnabled false }
@@ -119,7 +142,7 @@ jobs:
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
               <application
-                  android:label="UPSCWAAJ"
+                  android:label="UPSCwaaj"
                   android:icon="@mipmap/ic_launcher"
                   android:roundIcon="@mipmap/ic_launcher_round"
                   android:usesCleartextTraffic="true"
@@ -145,6 +168,14 @@ jobs:
                           <action android:name="com.google.firebase.MESSAGING_EVENT" />
                       </intent-filter>
                   </service>
+                  
+                  <!-- Fixes the White Square Icon in Push Notifications -->
+                  <meta-data
+                      android:name="com.google.firebase.messaging.default_notification_icon"
+                      android:resource="@mipmap/ic_notification_final" />
+                  <meta-data
+                      android:name="com.google.firebase.messaging.default_notification_color"
+                      android:resource="@color/accentColor" />
               </application>
           </manifest>
           EOF
@@ -219,7 +250,7 @@ jobs:
                       <TextView
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
-                          android:text="UPSCWAAJ"
+                          android:text="UPSCwaaj"
                           android:textColor="#eab308"
                           android:textSize="44sp"
                           android:textStyle="bold"
