@@ -26,6 +26,9 @@ jobs:
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
           # --- BULLETPROOF ICON COMPILER ---
+          # Generate a fallback invisible icon so the build NEVER fails due to missing files
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > app/src/main/res/mipmap-xxxhdpi/fallback_icon.png
+
           # 1. Safely rename and copy all PNGs (replaces forbidden dashes with underscores)
           for img in *.png; do
             if [ -f "$img" ]; then
@@ -37,18 +40,18 @@ jobs:
           # 2. Assign the App Icons and Push Notification Icons
           cd app/src/main/res/mipmap-xxxhdpi
           
-          MAIN_ICON=$(ls playstore_icon.png ic_launcher_web.png apple_touch_icon.png 2>/dev/null | head -n 1)
-          [ -z "$MAIN_ICON" ] && MAIN_ICON=$(ls *.png 2>/dev/null | head -n 1)
+          # Added '|| true' to prevent Linux 'ls' from crashing the workflow if a name isn't found
+          MAIN_ICON=$(ls playstore_icon.png ic_launcher_web.png apple_touch_icon.png 2>/dev/null | head -n 1 || true)
+          [ -z "$MAIN_ICON" ] && MAIN_ICON=$(ls *.png 2>/dev/null | grep -v fallback_icon.png | head -n 1 || true)
+          [ -z "$MAIN_ICON" ] && MAIN_ICON="fallback_icon.png"
           
-          if [ -n "$MAIN_ICON" ]; then
-            cp "$MAIN_ICON" ic_launcher.png
-            cp "$MAIN_ICON" ic_launcher_round.png
-          fi
+          cp "$MAIN_ICON" ic_launcher.png
+          cp "$MAIN_ICON" ic_launcher_round.png
           
-          NOTIFY_ICON=$(ls *notification*.png *transparent*.png 2>/dev/null | head -n 1)
+          NOTIFY_ICON=$(ls *notification*.png *transparent*.png 2>/dev/null | head -n 1 || true)
           if [ -n "$NOTIFY_ICON" ]; then
             cp "$NOTIFY_ICON" ic_notification_final.png
-          elif [ -n "$MAIN_ICON" ]; then
+          else
             cp "$MAIN_ICON" ic_notification_final.png
           fi
           
