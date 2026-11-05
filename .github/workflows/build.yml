@@ -1,4 +1,4 @@
-name: Build UPSCwaaj AAB and APK
+name: Build Premium UPSCwaaj App
 
 on:
   push:
@@ -53,9 +53,7 @@ jobs:
                   versionName "1.0"
               }
               buildTypes {
-                  release {
-                      minifyEnabled false
-                  }
+                  release { minifyEnabled false }
               }
           }
           dependencies {
@@ -87,31 +85,66 @@ jobs:
           cat << 'EOF' > app/src/main/res/values/styles.xml
           <resources>
               <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="android:statusBarColor">#0c1424</item>
+                  <item name="android:statusBarColor">#0f172a</item>
+                  <item name="android:windowBackground">#0f172a</item>
               </style>
           </resources>
           EOF
 
-          # Expanded layout with 72sp text size for powerful screen filling proportions
-          cat << 'EOF' > app/src/main/res/layout/activity_splash.xml
+          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
           <?xml version="1.0" encoding="utf-8"?>
           <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#f59e0b">
-
-              <TextView
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_centerInParent="true"
-                  android:text="UPSCWAAJ"
-                  android:textColor="#0c1424"
-                  android:textSize="72sp"
-                  android:textStyle="bold"
-                  android:letterSpacing="0.06"
-                  android:gravity="center"
-                  android:fontFamily="sans-serif-black" />
-
+              android:background="#0f172a">
+              
+              <!-- Main Content (Website) -->
+              <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                  android:id="@+id/swipe_refresh"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent">
+                  <WebView
+                      android:id="@+id/webview"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent" />
+              </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+              
+              <!-- Premium Splash Screen Overlay -->
+              <RelativeLayout
+                  android:id="@+id/splash_screen"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:background="#0f172a"
+                  android:elevation="10dp">
+                  
+                  <LinearLayout
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_centerInParent="true"
+                      android:gravity="center"
+                      android:orientation="vertical">
+                      
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="UPSCwaaj"
+                          android:textColor="#eab308"
+                          android:textSize="44sp"
+                          android:textStyle="bold"
+                          android:fontFamily="sans-serif-black"
+                          android:letterSpacing="0.02" />
+                          
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="WORLD AFFAIRS"
+                          android:textColor="#94a3b8"
+                          android:textSize="13sp"
+                          android:textStyle="bold"
+                          android:letterSpacing="0.3"
+                          android:layout_marginTop="6dp" />
+                  </LinearLayout>
+              </RelativeLayout>
           </RelativeLayout>
           EOF
 
@@ -121,11 +154,11 @@ jobs:
           import android.content.pm.PackageManager;
           import android.os.Build;
           import android.os.Bundle;
-          import android.os.Handler;
-          import android.os.Looper;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
+          import android.view.View;
+          import android.animation.ObjectAnimator;
           import androidx.activity.result.ActivityResultLauncher;
           import androidx.activity.result.contract.ActivityResultContracts;
           import androidx.appcompat.app.AppCompatActivity;
@@ -135,6 +168,8 @@ jobs:
           public class MainActivity extends AppCompatActivity {
               private WebView webView;
               private SwipeRefreshLayout swipeRefreshLayout;
+              private View splashScreen;
+              private boolean isSplashGone = false;
 
               private final ActivityResultLauncher<String> requestPermissionLauncher =
                   registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {});
@@ -142,12 +177,37 @@ jobs:
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
 
-                  setContentView(R.layout.activity_splash);
+                  webView = findViewById(R.id.webview);
+                  swipeRefreshLayout = findViewById(R.id.swipe_refresh);
+                  splashScreen = findViewById(R.id.splash_screen);
 
-                  new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                      initMainApp();
-                  }, 2500);
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setLoadWithOverviewMode(true);
+                  settings.setUseWideViewPort(true);
+
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+                          swipeRefreshLayout.setRefreshing(false);
+                          
+                          // Trigger smooth fade out ONLY when website is loaded
+                          if (!isSplashGone) {
+                              isSplashGone = true;
+                              ObjectAnimator fadeOut = ObjectAnimator.ofFloat(splashScreen, "alpha", 1f, 0f);
+                              fadeOut.setDuration(800);
+                              fadeOut.start();
+                              splashScreen.postDelayed(() -> splashScreen.setVisibility(View.GONE), 800);
+                          }
+                      }
+                  });
+
+                  swipeRefreshLayout.setOnRefreshListener(() -> webView.reload());
+                  webView.loadUrl("https://www.upscwaaj.com");
 
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                       if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -155,31 +215,6 @@ jobs:
                           requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
                       }
                   }
-              }
-
-              private void initMainApp() {
-                  swipeRefreshLayout = new SwipeRefreshLayout(this);
-                  webView = new WebView(this);
-                  swipeRefreshLayout.addView(webView);
-                  setContentView(swipeRefreshLayout);
-
-                  WebSettings settings = webView.getSettings();
-                  settings.setJavaScriptEnabled(true);
-                  settings.setDomStorageEnabled(true);
-                  settings.setLoadWithOverviewMode(true);
-                  settings.setUseWideViewPort(true);
-                  settings.setDatabaseEnabled(true);
-
-                  webView.setWebViewClient(new WebViewClient() {
-                      @Override
-                      public void onPageFinished(WebView view, String url) {
-                          super.onPageFinished(view, url);
-                          swipeRefreshLayout.setRefreshing(false);
-                      }
-                  });
-
-                  swipeRefreshLayout.setOnRefreshListener(() -> webView.reload());
-                  webView.loadUrl("https://www.upscwaaj.com");
               }
 
               @Override
