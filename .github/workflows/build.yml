@@ -26,13 +26,11 @@ jobs:
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
           # --- KEYSTORE & APP SIGNING ---
-          # Generate a secure signing key if one doesn't already exist in the repository
           if [ ! -f "upscwaaj.keystore" ]; then
             keytool -genkey -v -keystore upscwaaj.keystore -alias upscwaaj -keyalg RSA -keysize 2048 -validity 10000 -storepass "upscwaaj123" -keypass "upscwaaj123" -dname "CN=UPSCWAAJ, OU=App, O=UPSCWAAJ, L=India, S=UP, C=IN"
           fi
 
           # --- SMART ICON COMPILER ---
-          # 1. Safely rename any files with dashes to underscores to prevent Android errors
           for img in *.png; do
             if [ -f "$img" ]; then
               safe_name=$(echo "$img" | tr '-' '_')
@@ -42,20 +40,17 @@ jobs:
             fi
           done
 
-          # 2. Copy all safe PNGs into the Android mipmap folder
           for img in *.png; do
             if [ -f "$img" ]; then
               cp "$img" "app/src/main/res/mipmap-xxxhdpi/$img"
             fi
           done
           
-          # 3. Assign the App Icons safely
           cd app/src/main/res/mipmap-xxxhdpi
           
           MAIN_ICON=$(ls playstore_icon.png ic_launcher_web.png apple_touch_icon.png upscwaaj_logo.png 2>/dev/null | head -n 1 || true)
           [ -z "$MAIN_ICON" ] && MAIN_ICON=$(ls *.png 2>/dev/null | head -n 1 || true)
           
-          # Fallback if no custom icon was uploaded
           if [ -z "$MAIN_ICON" ]; then
             echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > fallback_icon.png
             MAIN_ICON="fallback_icon.png"
@@ -92,7 +87,7 @@ jobs:
           cat << 'EOF' > gradle.properties
           android.useAndroidX=true
           android.enableJetifier=true
-          android.suppressUnsupportedCompileSdk=34
+          android.suppressUnsupportedCompileSdk=36
           EOF
 
           cat << 'EOF' > build.gradle
@@ -111,13 +106,13 @@ jobs:
           apply plugin: 'com.google.gms.google-services'
           android {
               namespace 'com.upscwaaj.app'
-              compileSdk 34
+              compileSdk 36
               defaultConfig {
                   applicationId "com.upscwaaj.app"
                   minSdk 24
-                  targetSdk 34
-                  versionCode 13
-                  versionName "1.12"
+                  targetSdk 36
+                  versionCode 14
+                  versionName "1.13"
               }
               signingConfigs {
                   release {
