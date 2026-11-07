@@ -25,6 +25,12 @@ jobs:
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
+          # --- KEYSTORE & APP SIGNING ---
+          # Generate a secure signing key if one doesn't already exist in the repository
+          if [ ! -f "upscwaaj.keystore" ]; then
+            keytool -genkey -v -keystore upscwaaj.keystore -alias upscwaaj -keyalg RSA -keysize 2048 -validity 10000 -storepass "upscwaaj123" -keypass "upscwaaj123" -dname "CN=UPSCWAAJ, OU=App, O=UPSCWAAJ, L=India, S=UP, C=IN"
+          fi
+
           # --- SMART ICON COMPILER ---
           # 1. Safely rename any files with dashes to underscores to prevent Android errors
           for img in *.png; do
@@ -110,11 +116,22 @@ jobs:
                   applicationId "com.upscwaaj.app"
                   minSdk 24
                   targetSdk 34
-                  versionCode 12
-                  versionName "1.11"
+                  versionCode 13
+                  versionName "1.12"
+              }
+              signingConfigs {
+                  release {
+                      storeFile file("../upscwaaj.keystore")
+                      storePassword "upscwaaj123"
+                      keyAlias "upscwaaj"
+                      keyPassword "upscwaaj123"
+                  }
               }
               buildTypes {
-                  release { minifyEnabled false }
+                  release { 
+                      minifyEnabled false 
+                      signingConfig signingConfigs.release
+                  }
               }
           }
           dependencies {
@@ -453,3 +470,9 @@ jobs:
         with:
           name: UPSCWAAJ-Test-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Secure Keystore (SAVE THIS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: UPSCWAAJ-Keystore
+          path: upscwaaj.keystore
